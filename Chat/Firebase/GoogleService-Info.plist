@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>697325280432-2ifo30u9edlpbhkfolag2oklrubm2rlg.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.697325280432-2ifo30u9edlpbhkfolag2oklrubm2rlg</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCKUyKpzEwjDpZ3h5n0EBDxcRhDRPbIoJU</string>
+	<key>GCM_SENDER_ID</key>
+	<string>697325280432</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>self-hesham.Chat</string>
+	<key>PROJECT_ID</key>
+	<string>chat-ae334</string>
+	<key>STORAGE_BUCKET</key>
+	<string>chat-ae334.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false/>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false/>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true/>
+	<key>IS_GCM_ENABLED</key>
+	<true/>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true/>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:697325280432:ios:f3a737e7c0b251c824ef75</string>
+</dict>
+</plist>
