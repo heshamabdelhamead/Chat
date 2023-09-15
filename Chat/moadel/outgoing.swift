@@ -29,6 +29,7 @@ class Outgoing{
             
         }
         if photo != nil{
+            sendPhoto(message: message, photo: photo!, memberIds: membersId )
             
         }
         if veideo != nil{
@@ -55,4 +56,19 @@ func SendText(message : localMessage,text : String, memberIds : [String]){
     message.message = text
     message.type = "text"
     Outgoing.saveMessage(message: message, meberIds: memberIds)
+}
+func sendPhoto(message : localMessage, photo : UIImage,memberIds : [String]){
+    message.message = "photo Message"
+    message.type = "photo"
+    let fileName = Date().stringDate()
+    
+    let fileDirectory = "MediaMessages/Photo/"+"\(message.chatRoomId)"+"\(fileName)"+".jpg"
+    fileStorage.saveFileLocally(fileData: photo.jpegData(compressionQuality : 0.6)! as NSData , fileName: fileName)
+    fileStorage.uploadImage(photo, directory: fileDirectory) { imageUrl in
+        if imageUrl != nil {
+            message.pictureUrl = imageUrl!
+            Outgoing.saveMessage(message: message, meberIds: memberIds)
+        }
+    }
+    
 }

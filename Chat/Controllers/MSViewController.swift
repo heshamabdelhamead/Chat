@@ -51,6 +51,7 @@ class MSViewController: MessagesViewController {
     var minMessageNumber = 0
     var displayingMessages = 0
     var typingCounter = 0
+    var  gallerly :  GalleryController!
     
     
     
@@ -98,7 +99,7 @@ class MSViewController: MessagesViewController {
         let attachButton = InputBarButtonItem()
         attachButton.image = UIImage(systemName: "paperclip",withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
         attachButton.onTouchUpInside { item in
-            print("attaching")
+            self.actionAttachmentMessage()
         }
         messageInputBar.setLeftStackViewWidthConstant(to: 30.0, animated: false)
         messageInputBar.setStackViewItems([attachButton] , forStack : .left, animated: false)
@@ -192,6 +193,34 @@ class MSViewController: MessagesViewController {
     func send(text: String?,photo: UIImage? ,video : Video?,audio: String?,location : String?, audioDuration : Float = 0.0   ){
         Outgoing.sendMessage(chatId: chatId, text: text, photo: photo, veideo: video, audio: audio, audioDuration: audioDuration, location: location, membersId: [user.curentId,recipienttId])
       //  MSViewController.reloadInputViews(<#T##self: UIResponder##UIResponder#>)
+    }
+    private func actionAttachmentMessage(){
+        messageInputBar.inputTextView.resignFirstResponder()
+        
+        let optionMenu = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let takePhotoOrVideo = UIAlertAction(title: "camera ", style: .default) { alert in
+            self.showImageGallery(camera: true)
+            
+        }
+        let showMedie = UIAlertAction(title: "liberary", style: .default) { alert in
+            self.showImageGallery(camera: false )
+
+        }
+        let shareLocation = UIAlertAction(title: "location", style: .default) { alert in
+            
+        }
+        let cancel = UIAlertAction(title: "cancel", style: .cancel)
+        takePhotoOrVideo.setValue(UIImage(systemName: "camera"), forKey: "image")
+        showMedie.setValue(UIImage(systemName: "photo.fill"), forKey: "image")
+        shareLocation.setValue(UIImage(systemName: "mappin.and.ellipse"), forKey:"image")
+        optionMenu.addAction(takePhotoOrVideo)
+        optionMenu.addAction(showMedie)
+        optionMenu.addAction(shareLocation)
+        optionMenu.addAction(cancel)
+        
+        
+        self.present(optionMenu, animated: true)
+
     }
     
     
@@ -305,5 +334,47 @@ class MSViewController: MessagesViewController {
         FTypeListener.shared.removeTypingListener()
         
     }
+        //MARK: Gallery
+    private func showImageGallery(camera : Bool){
+        
+        gallerly = GalleryController()
+        gallerly.delegate = self
+        Config.tabsToShow = camera ? [.cameraTab] : [.imageTab,.videoTab]
+        Config.Camera.imageLimit = 1
+        Config.initialTab = .imageTab
+        Config.VideoEditor.maximumDuration = 30
+        self.present(gallerly, animated: true )
+        
+        
+        
+    }
+    
+}
+extension MSViewController : GalleryControllerDelegate{
+    func galleryController(_ controller: Gallery.GalleryController, didSelectImages images: [Gallery.Image]) {
+        if images.count > 0{
+            images.first!.resolve { image in
+                self.send(text: nil, photo: image, video: nil, audio: nil, location: nil)
+            }
+        }
+        
+        controller.dismiss(animated: true)
+    }
+    
+    func galleryController(_ controller: Gallery.GalleryController, didSelectVideo video: Gallery.Video) {
+        controller.dismiss(animated: true)
+
+    }
+    
+    func galleryController(_ controller: Gallery.GalleryController, requestLightbox images: [Gallery.Image]) {
+        controller.dismiss(animated: true)
+
+    }
+    
+    func galleryControllerDidCancel(_ controller: Gallery.GalleryController) {
+        controller.dismiss(animated: true)
+
+    }
+    
     
 }

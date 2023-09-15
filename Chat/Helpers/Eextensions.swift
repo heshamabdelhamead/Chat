@@ -45,4 +45,15 @@ extension Date{
         return dateFormater.string(from: self)
         
     }
+    func stringDate()-> String {
+        
+        let dateFormater = DateFormatter()
+        
+        dateFormater.dateFormat = "ddmmyyyyHHMMss"
+        
+        return dateFormater.string(from: self)
+        
+    }
+    
+    
 }
