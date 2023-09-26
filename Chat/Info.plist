@@ -10,6 +10,10 @@
 	<string>the app need your media liberary</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>the app need your photo</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>the app need to access your location </string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>the app need to access mic</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

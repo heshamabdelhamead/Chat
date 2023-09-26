@@ -11,7 +11,7 @@ import FirebaseFirestoreSwift
 import Gallery
 
 class Outgoing{
-    class func sendMessage(chatId : String, text: String?,photo : UIImage?,veideo : Video?,audio : String?,  audioDuration: Float=0.0, location: String?, membersId: [String]){
+    class func sendMessage(chatId : String, text: String?,photo : UIImage?,video : Video?,audio : String?,  audioDuration: Float=0.0, location: String?, membersId: [String]){
         //1: create local Message form the data we have
         let currentUser = user.currentUser!
         
@@ -32,13 +32,16 @@ class Outgoing{
             sendPhoto(message: message, photo: photo!, memberIds: membersId )
             
         }
-        if veideo != nil{
-            
+        if video != nil{
+            sendVideo(message: message, video: video! , memberIds: membersId)
         }
         if location != nil{
+            sendLocation(message: message, memberIds: membersId )
             
         }
         if audio != nil{
+            print("hi there")
+            sendAudio(message: message, audioFileName: audio!, audioDuration: audioDuration, memberIds: membersId)
             
         }
         //3: save message locallay
@@ -70,5 +73,67 @@ func sendPhoto(message : localMessage, photo : UIImage,memberIds : [String]){
             Outgoing.saveMessage(message: message, meberIds: memberIds)
         }
     }
+    
+}
+
+
+func sendVideo(message : localMessage,video : Video,memberIds:[String]){
+    message.message  = "video message"
+    message.type = "video"
+    let fileName = Date().stringDate()
+    let thumbnailDirectory = "MediaMessages/Photo/"+"\(message.chatRoomId)"+"_\(fileName)"+".jpg"
+    let videoDirectory = "MediaMessages/Video/"+"\(message.chatRoomId)"+"\(fileName)"+".mov"
+    let editor = VideoEditor()
+    editor.process(video: video) { processVideo, videoUrl in
+        if let tempPath = videoUrl{
+            let thumbnail = videoThumbnail(videoUrl: tempPath)
+            fileStorage.saveFileLocally(fileData: thumbnail.jpegData(compressionQuality: 0.7)! as NSData, fileName: fileName)
+            fileStorage.uploadImage(thumbnail, directory: thumbnailDirectory) { imageLink in
+                if imageLink != nil {
+                    let videoData = NSData(contentsOfFile : tempPath.path)
+                    fileStorage.saveFileLocally(fileData: videoData!, fileName: fileName + ".mov")
+                    fileStorage.uploadvideo(videoData! , directory: videoDirectory) { videoLink in
+                        message.videoUrl = videoLink ?? ""
+                        message.pictureUrl = imageLink ?? ""
+                        Outgoing.saveMessage(message: message, meberIds: memberIds)
+
+                    }
+                    
+                }
+                
+            }
+        }
+    }
+    
+
+    
+}
+
+func sendLocation(message : localMessage,memberIds:[String]){
+    let currentLocation = LocationManger.shared.curentLocation
+    message.message = "location messsage"
+    message.type = "location"
+    message.latitude = currentLocation?.latitude ?? 0.0
+    message.longitude = currentLocation?.longitude ?? 0.0
+    Outgoing.saveMessage(message: message, meberIds: memberIds)
+}
+
+func sendAudio(message: localMessage, audioFileName: String ,audioDuration : Float, memberIds : [String]){
+    
+    message.message = "Audio message "
+    message.type = "audio"
+    let fileDiectory = "MediaMessages/Audio/"+"\(message.chatRoomId)"+"_\(audioFileName)"+".m4a"
+    print("hi there")
+
+    fileStorage.uploadAudio(audioFileName, directory: fileDiectory) { audioLink in
+
+        if audioLink != nil {
+            message.audiourl = audioLink ?? " "
+            message.audioDuration = Double(audioDuration)
+            Outgoing.saveMessage(message: message, meberIds: memberIds)
+        }
+    }
+    
+
     
 }

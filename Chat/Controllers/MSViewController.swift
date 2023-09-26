@@ -40,8 +40,10 @@ class MSViewController: MessagesViewController {
     private var chatId = ""
     private var recipienttId = ""
     private var recipientName = ""
+    
     var refreshControler = UIRefreshControl()
     let micButton = InputBarButtonItem()
+    
     var curentUser = sender(senderId: user.curentId , displayName: user.currentUser!.userName)
     var MKMessages : [MKMessage] = []
     var allLocalMessages : Results<localMessage>!
@@ -52,7 +54,10 @@ class MSViewController: MessagesViewController {
     var displayingMessages = 0
     var typingCounter = 0
     var  gallerly :  GalleryController!
-    
+    var longPressedGesture : UILongPressGestureRecognizer!
+    var  audioFileName: String  = " "
+    var audioStartTime: Date = Date()
+    open lazy var audioController = BasicAudioController(messageCollectionView: messagesCollectionView)
     
     
 
@@ -71,7 +76,7 @@ class MSViewController: MessagesViewController {
         print(Realm.Configuration.defaultConfiguration.fileURL!)
 
         super.viewDidLoad()
-        
+        configureLongPressedGestureReconzier()
         configureMSGCollectoionview()
         configurationMegInputBar()
         loadMessage()
@@ -80,7 +85,7 @@ class MSViewController: MessagesViewController {
         createTypingObserver()
         navigationItem.largeTitleDisplayMode = .never
         self.messagesCollectionView.scrollToLastItem(animated:true)
-
+         
         // Do any additional setup after loading the view.
         
     }
@@ -101,6 +106,12 @@ class MSViewController: MessagesViewController {
         attachButton.onTouchUpInside { item in
             self.actionAttachmentMessage()
         }
+        
+        micButton.image = UIImage(systemName: "mic.fill",withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
+        
+        micButton.setSize(CGSize(width: 30, height: 30), animated: true)
+        micButton.addGestureRecognizer(longPressedGesture)
+        
         messageInputBar.setLeftStackViewWidthConstant(to: 30.0, animated: false)
         messageInputBar.setStackViewItems([attachButton] , forStack : .left, animated: false)
 
@@ -115,9 +126,18 @@ class MSViewController: MessagesViewController {
         
         
     }
+    //MARK: configure longPressedgestureReconsizer
+    
+    private func configureLongPressedGestureReconzier(){
+        longPressedGesture = UILongPressGestureRecognizer(target: self, action: #selector(recordAndSend))
+    }
+    
+    
+    
+    
     func updateMicButtonStatus(show : Bool){
-        let micButton = InputBarButtonItem()
-        micButton.image = UIImage(systemName: "mic",withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
+      // let micButton = InputBarButtonItem()
+        micButton.image = UIImage(systemName: "mic.fill",withConfiguration: UIImage.SymbolConfiguration(pointSize: 30))
         micButton.setSize(CGSize(width: 30, height: 30), animated: false)
         
         if show{
@@ -191,10 +211,39 @@ class MSViewController: MessagesViewController {
     
         //MARK: ACTIOn
     func send(text: String?,photo: UIImage? ,video : Video?,audio: String?,location : String?, audioDuration : Float = 0.0   ){
-        Outgoing.sendMessage(chatId: chatId, text: text, photo: photo, veideo: video, audio: audio, audioDuration: audioDuration, location: location, membersId: [user.curentId,recipienttId])
+        Outgoing.sendMessage(chatId: chatId, text: text, photo: photo, video: video, audio: audio, audioDuration: audioDuration, location: location, membersId: [user.curentId,recipienttId])
       //  MSViewController.reloadInputViews(<#T##self: UIResponder##UIResponder#>)
     }
+    
+    // Record audio and send function
+    @objc func recordAndSend(){
+        switch longPressedGesture.state{
+            
+        case .began:
+            audioFileName = Date().stringDate()
+            audioStartTime = Date()
+            AudioRecorder.shared.startRecording(fileName: audioFileName)
+            print ("began")
+        case .ended:
+            AudioRecorder.shared.finshRecording()
+            
+            if fileExistAtPath(path: audioFileName + ".m4a"){
+                let audioDuration = audioStartTime.interval(ofComponent: .second, to: Date())
+                send(text: nil, photo: nil, video: nil, audio: audioFileName, location: nil, audioDuration: audioDuration)
+            }
+            print ("end")
+
+             @unknown default: print("unKnown")
+        }
+    }
+    
+    
+    
+    
+    
+    
     private func actionAttachmentMessage(){
+        
         messageInputBar.inputTextView.resignFirstResponder()
         
         let optionMenu = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
@@ -207,7 +256,8 @@ class MSViewController: MessagesViewController {
 
         }
         let shareLocation = UIAlertAction(title: "location", style: .default) { alert in
-            
+            self.send(text: nil, photo: nil, video: nil , audio: nil, location: "location")
+
         }
         let cancel = UIAlertAction(title: "cancel", style: .cancel)
         takePhotoOrVideo.setValue(UIImage(systemName: "camera"), forKey: "image")
@@ -318,6 +368,8 @@ class MSViewController: MessagesViewController {
     func checkForOldMessagesInFirestore(){
         FMessageListener.Shared.checkForOldMessage(documentId: user.curentId, collectionId: chatId)
     }
+    
+    
     private func listenForNewMessage(){
         FMessageListener.Shared.listenForNewMessage(doucmentId: user.curentId, collectionId: chatId, lastMessageDate: lastMessageDate())
     }
@@ -332,7 +384,7 @@ class MSViewController: MessagesViewController {
     private func removeListener(){
         FMessageListener.Shared.removeMessageListener()
         FTypeListener.shared.removeTypingListener()
-        
+    
     }
         //MARK: Gallery
     private func showImageGallery(camera : Bool){
@@ -350,6 +402,7 @@ class MSViewController: MessagesViewController {
     }
     
 }
+
 extension MSViewController : GalleryControllerDelegate{
     func galleryController(_ controller: Gallery.GalleryController, didSelectImages images: [Gallery.Image]) {
         if images.count > 0{
@@ -362,6 +415,8 @@ extension MSViewController : GalleryControllerDelegate{
     }
     
     func galleryController(_ controller: Gallery.GalleryController, didSelectVideo video: Gallery.Video) {
+        self.send(text: nil, photo: nil, video: video, audio: nil, location: nil)
+
         controller.dismiss(animated: true)
 
     }

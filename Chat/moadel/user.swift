@@ -10,12 +10,14 @@ import FirebaseFirestoreSwift
 import Firebase
 
 struct user : Codable , Equatable {
+    
     var id = ""
     var userName : String
     var emial : String
     var pushId = ""
     var avatarLink = ""
-    var status : String
+    var status : String 
+    
     
     static  var currentUser : user? {
         
@@ -36,6 +38,8 @@ struct user : Codable , Equatable {
         }
          return nil 
     }
+    
+    
     static var curentId : String{
         return Auth.auth().currentUser!.uid
     }
